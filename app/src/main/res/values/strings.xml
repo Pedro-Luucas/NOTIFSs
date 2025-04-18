@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">NOTIFSs</string>
+    <string name="notification_listener_service">NOTIFSs Notification Listener</string>
+    <string name="permission_required">Notification Access Permission Required</string>
+    <string name="permission_explanation">This app needs access to your notifications to display them.</string>
+    <string name="go_to_settings">Go to Settings</string>
+    <string name="notifications_tab">Notifications</string>
+    <string name="test_tab">Test</string>
+    <string name="about_tab">About</string>
+    <string name="send_test_notification">Send Test Notification</string>
+    <string name="test_notification_title">Test Notification</string>
+    <string name="test_notification_content">This is a test notification from NOTIFSs app</string>
+    <string name="about_text">This app displays your notifications in a list. It requires notification access permission to function properly.</string>
+    <string name="no_notifications">No notifications received yet</string>
+    <string name="notification_permission_title">%1$s</string>
+    <string name="notification_permission_message">%1$s</string>
+    <string name="cancel">Cancel</string>
+</resources>
