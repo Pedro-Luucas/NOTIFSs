@@ -7,7 +7,7 @@ import androidx.compose.runtime.MutableState
 import com.example.notifss.PermissionScreen
 import com.example.notifss.R
 import com.example.notifss.manager.PermissionManager
-import com.example.notifss.service.NotificationItem
+import com.example.notifss.service.ContactItem
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -38,7 +38,7 @@ class UIComponentManager(private val context: Context) {
      * Determines which screen to show based on permission status
      * @param hasPermission Current permission state
      * @param permissionManager Permission manager instance
-     * @param notificationsFlow Flow of notification items
+     * @param contactsFlow Flow of notification items
      * @param onSendTestNotification Callback for sending test notification
      * @return Composable function to render the appropriate screen
      */
@@ -46,11 +46,11 @@ class UIComponentManager(private val context: Context) {
     fun getScreenBasedOnPermission(
         hasPermission: MutableState<Boolean>,
         permissionManager: PermissionManager,
-        notificationsFlow: StateFlow<List<NotificationItem>>,
+        contactsFlow: StateFlow<List<ContactItem>>,
         onSendTestNotification: () -> Unit
     ): @Composable () -> Unit {
         return if (hasPermission.value) {
-            { MainScreen(notificationsFlow, onSendTestNotification) }
+            { MainScreen(contactsFlow, onSendTestNotification) }
         } else {
             {
                 PermissionScreen(

@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Circle
 import com.example.notifss.manager.NotificationManager
 import com.example.notifss.manager.PermissionManager
 import com.example.notifss.service.ContactItem
-import com.example.notifss.service.NotificationItem
 import com.example.notifss.service.NotificationService
 import com.example.notifss.ui.ContactsListScreen
 import com.example.notifss.ui.MainScreen
@@ -39,18 +38,23 @@ import com.example.notifss.ui.theme.NOTIFSsTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 // Define sealed class for navigation destinations
 sealed class Screen(val route: String, val title: String) {
-    object Notifications : Screen("notifications", "Notifications")
+    object Contacts : Screen("contacts", "Contacts")
     object Test : Screen("test", "Test")
     object About : Screen("about", "About")
 }
 
 class MainActivity : ComponentActivity() {
     // Flow to hold notification items
-    private val _notificationsFlow = MutableStateFlow<List<NotificationItem>>(emptyList())
-    val notificationsFlow: StateFlow<List<NotificationItem>> = _notificationsFlow.asStateFlow()
+    private val _contactsFlow = MutableStateFlow<List<ContactItem>>(emptyList())
+    val contactsFlow: StateFlow<List<ContactItem>> = _contactsFlow.asStateFlow()
     
     // Manager instances
     private lateinit var notificationManager: NotificationManager
@@ -75,8 +79,8 @@ class MainActivity : ComponentActivity() {
         }
         
         // Observe notifications from the service
-        NotificationService.notifications.observe(this) { notifications ->
-            _notificationsFlow.value = notifications
+        NotificationService.contacts.observe(this) { contacts ->
+            _contactsFlow.value = contacts
         }
         
         setContent {
@@ -92,7 +96,7 @@ class MainActivity : ComponentActivity() {
                 val screenContent = uiComponentManager.getScreenBasedOnPermission(
                     hasPermission = hasPermission,
                     permissionManager = permissionManager,
-                    notificationsFlow = notificationsFlow,
+                    contactsFlow = contactsFlow,
                     onSendTestNotification = ::sendTestNotification
                 )
                 
@@ -118,7 +122,7 @@ class MainActivity : ComponentActivity() {
                 val screenContent = uiComponentManager.getScreenBasedOnPermission(
                     hasPermission = hasPermission,
                     permissionManager = permissionManager,
-                    notificationsFlow = notificationsFlow,
+                    contactsFlow = contactsFlow,
                     onSendTestNotification = ::sendTestNotification
                 )
                 
@@ -187,12 +191,12 @@ fun PermissionScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(
-    notificationsFlow: StateFlow<List<NotificationItem>>,
+    contactsFlow: StateFlow<List<ContactItem>>,
     onSendTestNotification: () -> Unit
 ) {
     val navController = rememberNavController()
     val items = listOf(
-        Screen.Notifications,
+        Screen.Contacts,
         Screen.Test,
         Screen.About
     )
@@ -207,7 +211,7 @@ fun MainContent(
                     NavigationBarItem(
                         icon = { Icon(Icons.Filled.Circle, contentDescription = null) },
                         label = { Text(stringResource(when(screen) {
-                            Screen.Notifications -> R.string.notifications_tab
+                            Screen.Contacts -> R.string.contacts_tab
                             Screen.Test -> R.string.test_tab
                             Screen.About -> R.string.about_tab
                         })) },
@@ -228,11 +232,11 @@ fun MainContent(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Notifications.route,
+            startDestination = Screen.Contacts.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Notifications.route) {
-                NotificationsScreen(notificationsFlow)
+            composable(Screen.Contacts.route) {
+                ContactScreen(contactsFlow)
             }
             composable(Screen.Test.route) {
                 TestScreen(onSendTestNotification)
@@ -245,14 +249,10 @@ fun MainContent(
 }
 
 // Notifications screen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+
 
 @Composable
-fun NotificationsScreen(notificationsFlow: StateFlow<List<NotificationItem>>) {
+fun ContactScreen(contactsFlow: StateFlow<List<ContactItem>>) {
     val contacts by NotificationService.contacts.observeAsState(emptyList())
     val navController = rememberNavController()
     

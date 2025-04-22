@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -38,7 +37,6 @@ import androidx.navigation.navArgument
 import com.example.notifss.R
 import com.example.notifss.Screen
 import com.example.notifss.service.ContactItem
-import com.example.notifss.service.NotificationItem
 import com.example.notifss.service.NotificationService
 import kotlinx.coroutines.flow.StateFlow
 
@@ -46,12 +44,12 @@ import kotlinx.coroutines.flow.StateFlow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    notificationsFlow: StateFlow<List<NotificationItem>>,
+    contactsFlow: StateFlow<List<ContactItem>>,
     onSendTestNotification: () -> Unit
 ) {
     val navController = rememberNavController()
     val items = listOf(
-        Screen.Notifications,
+        Screen.Contacts,
         Screen.Test,
         Screen.About
     )
@@ -66,7 +64,7 @@ fun MainScreen(
                     NavigationBarItem(
                         icon = { Icon(Icons.Filled.Circle, contentDescription = null) },
                         label = { Text(stringResource(when(screen) {
-                            Screen.Notifications -> R.string.notifications_tab
+                            Screen.Contacts -> R.string.contacts_tab
                             Screen.Test -> R.string.test_tab
                             Screen.About -> R.string.about_tab
                         })) },
@@ -87,11 +85,11 @@ fun MainScreen(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Notifications.route,
+            startDestination = Screen.Contacts.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Notifications.route) {
-                NotificationsScreen(notificationsFlow)
+            composable(Screen.Contacts.route) {
+                ContactsScreen(contactsFlow)
             }
             composable(Screen.Test.route) {
                 TestScreen(onSendTestNotification)
@@ -105,8 +103,7 @@ fun MainScreen(
 
 // Notifications screen
 @Composable
-fun NotificationsScreen(notificationsFlow: StateFlow<List<NotificationItem>>) {
-    val notifications by notificationsFlow.collectAsStateWithLifecycle()
+fun ContactsScreen(contactsFlow: StateFlow<List<ContactItem>>) {
     val contacts by NotificationService.contacts.observeAsState(emptyList())
     val navController = rememberNavController()
     
@@ -151,74 +148,7 @@ fun ContactsListScreen(contacts: List<ContactItem>, navController: NavController
     }
 }
 
-// Notification card (keeping for backward compatibility)
-@Composable
-fun NotificationCard(notification: NotificationItem) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // App info row with icon and name
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // App icon
-                notification.appIcon?.let { drawable ->
-                    Image(
-                        painter = BitmapPainter(drawable.toBitmap().asImageBitmap()),
-                        contentDescription = "App icon",
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-                
-                // App name
-                Text(
-                    text = notification.appName,
-                    style = MaterialTheme.typography.labelMedium
-                )
-                
-                Spacer(modifier = Modifier.weight(1f))
-                
-                // Time
-                Text(
-                    text = notification.timeString,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = notification.title,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = notification.content)
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = notification.packageName,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f)
-                )
-                
-                // Delete button
-                IconButton(
-                    onClick = { NotificationService.deleteNotification(notification.id) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete notification",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        }
-    }
-}
+
 
 // Contact card for the contacts list
 @Composable
@@ -232,16 +162,7 @@ fun ContactCard(contact: ContactItem, onClick: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Contact info row with app icon and name
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // App icon
-                contact.appIcon?.let { drawable ->
-                    Image(
-                        painter = BitmapPainter(drawable.toBitmap().asImageBitmap()),
-                        contentDescription = "App icon",
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
+                
                 
                 // Contact name
                 Text(
@@ -253,7 +174,7 @@ fun ContactCard(contact: ContactItem, onClick: () -> Unit) {
                 
                 // Message count
                 Text(
-                    text = "${contact.messages.size} messages hfdsjkafhdsa",
+                    text = "${contact.messages.size} messages ffffff",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -281,26 +202,6 @@ fun ContactCard(contact: ContactItem, onClick: () -> Unit) {
                 }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = contact.appName,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.weight(1f)
-                )
-                
-                // Delete button
-                IconButton(
-                    onClick = { NotificationService.deleteContact(contact.id) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete contact",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
         }
     }
 }

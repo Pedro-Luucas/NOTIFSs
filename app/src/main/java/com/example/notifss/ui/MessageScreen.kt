@@ -41,16 +41,7 @@ fun MessageScreen(navController: NavController, contactId: String) {
             TopAppBar(
                 title = { 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // App icon
-                        contact?.appIcon?.let { drawable ->
-                            Image(
-                                painter = androidx.compose.ui.graphics.painter.BitmapPainter(drawable.toBitmap().asImageBitmap()),
-                                contentDescription = "App icon",
-                                modifier = Modifier.size(32.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
+                        
                         
                         // Contact name
                         Text(text = contact?.name ?: "Unknown Contact")
@@ -112,7 +103,7 @@ fun MessageList(contact: ContactItem, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(sortedMessages) { message ->
-                MessageBubble(message = message, appName = contact.appName)
+                MessageBubble(message = message)
             }
         }
     }
@@ -122,7 +113,7 @@ fun MessageList(contact: ContactItem, modifier: Modifier = Modifier) {
  * Displays a single message in a chat bubble
  */
 @Composable
-fun MessageBubble(message: MessageItem, appName: String) {
+fun MessageBubble(message: MessageItem) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // Message bubble
         Box(
@@ -141,7 +132,7 @@ fun MessageBubble(message: MessageItem, appName: String) {
         // Timestamp
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "${message.timeString} • $appName",
+            text = "${message.timeString}",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 4.dp)
         )

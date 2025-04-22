@@ -4,7 +4,7 @@
     <string name="permission_required">Notification Access Permission Required</string>
     <string name="permission_explanation">This app needs access to your notifications to display them.</string>
     <string name="go_to_settings">Go to Settings</string>
-    <string name="notifications_tab">Notifications</string>
+    <string name="contacts_tab">Contacts</string>
     <string name="test_tab">Test</string>
     <string name="about_tab">About</string>
     <string name="send_test_notification">Send Test Notification</string>

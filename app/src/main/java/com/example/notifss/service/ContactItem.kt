@@ -6,19 +6,14 @@ import android.graphics.drawable.Drawable
  * Represents a contact with their messages
  */
 data class ContactItem(
-    val id: String,          // Unique identifier for the contact (using title as key)
-    val name: String,        // Contact name (from notification title)
-    val packageName: String, // App package name
-    val appName: String,     // App name
-    val appIcon: Drawable?   // App icon
+    val id: String,          // Unique identifier for the contact (using title hashcode as key)
+    val name: String,        // Contact name (from notification title)// App icon
+    val messages: List<MessageItem> = emptyList() // List of messages for this contact
 )
 
-/**
- * Represents a message from a contact
- */
 data class MessageItem(
-    val id: String,          // Notification ID
+    val id: String,          // Unique identifier for the message (using notification key)
     val content: String,     // Message content (from notification text)
-    val timestamp: Long,     // Timestamp when the message was received
+    val timestamp: Long,     // Timestamp of the message
     val timeString: String   // Formatted time string
 )

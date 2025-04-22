@@ -16,47 +16,15 @@ import java.util.Locale
 class NotificationService : NotificationListenerService() {
 
     companion object {
-        private val _notifications = MutableLiveData<List<NotificationItem>>(emptyList())
-        val notifications: LiveData<List<NotificationItem>> = _notifications
         
         private val _contacts = MutableLiveData<List<ContactItem>>(emptyList())
         val contacts: LiveData<List<ContactItem>> = _contacts
 
         fun clearNotifications() {
-            _notifications.postValue(emptyList())
             _contacts.postValue(emptyList())
         }
         
-        fun deleteNotification(notificationId: String) {
-            val currentList = _notifications.value ?: emptyList()
-            val updatedList = currentList.filterNot { it.id == notificationId }
-            _notifications.postValue(updatedList)
-            
-            // Also remove the message from contacts
-            val currentContacts = _contacts.value ?: emptyList()
-            val updatedContacts = currentContacts.map { contact ->
-                val updatedMessages = contact.messages.filterNot { it.id == notificationId }
-                if (updatedMessages.isEmpty()) {
-                    null // Mark for removal if no messages left
-                } else {
-                    contact.copy(messages = updatedMessages)
-                }
-            }.filterNotNull()
-            _contacts.postValue(updatedContacts)
-        }
-        
-        fun deleteContact(contactId: String) {
-            val currentContacts = _contacts.value ?: emptyList()
-            val updatedContacts = currentContacts.filterNot { it.id == contactId }
-            _contacts.postValue(updatedContacts)
-            
-            // Also remove all associated notifications
-            val contactToRemove = currentContacts.find { it.id == contactId } ?: return
-            val messageIds = contactToRemove.messages.map { it.id }
-            val currentNotifications = _notifications.value ?: emptyList()
-            val updatedNotifications = currentNotifications.filterNot { it.id in messageIds }
-            _notifications.postValue(updatedNotifications)
-        }
+
     }
 
     override fun onListenerConnected() {
@@ -86,34 +54,6 @@ class NotificationService : NotificationListenerService() {
         val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         val timeString = dateFormat.format(Date(timestamp))
         
-        // Get app name and icon
-        val packageManager = applicationContext.packageManager
-        val appName = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
-        } catch (e: PackageManager.NameNotFoundException) {
-            packageName // Fallback to package name if app name can't be retrieved
-        }
-        
-        val appIcon = try {
-            packageManager.getApplicationIcon(packageName)
-        } catch (e: PackageManager.NameNotFoundException) {
-            null // Fallback to null if icon can't be retrieved
-        }
-        
-        val notificationItem = NotificationItem(
-            id = sbn.key,
-            title = title + " titleNOTI",
-            content = text + " contentNOTI",
-            packageName = packageName + " packageNameNOTI",
-            timestamp = timestamp,
-            timeString = timeString + " timeStringNOTI",
-            appName = appName + " appNameNOTI",
-            appIcon = appIcon
-        )
-        
-        // Add to notifications list
-        val currentList = _notifications.value ?: emptyList()
-        _notifications.postValue(currentList + notificationItem)
         
         // Create message item for the contact
         val messageItem = MessageItem(
@@ -123,11 +63,19 @@ class NotificationService : NotificationListenerService() {
             timeString = timeString
         )
         
-        // Add or update contact
-        addOrUpdateContact(title, messageItem, packageName, appName, appIcon)
+        if (contactExists(title)) {
+            addMessageToContact(title, messageItem)
+        } else {
+            addContact(title, messageItem)
+        }
+        
     }
     
-    private fun addOrUpdateContact(contactName: String, messageItem: MessageItem, packageName: String, appName: String, appIcon: Drawable?) {
+
+
+
+
+    private fun addContact(contactName: String, messageItem: MessageItem) {
         val currentContacts = _contacts.value ?: emptyList()
         
         // Create a unique ID for the contact based on the name
@@ -136,39 +84,44 @@ class NotificationService : NotificationListenerService() {
         // Find if contact already exists
         val existingContactIndex = currentContacts.indexOfFirst { it.id == contactId }
         
-        if (existingContactIndex >= 0) {
-            // Update existing contact with new message
-            val existingContact = currentContacts[existingContactIndex]
-            val updatedMessages = existingContact.messages + messageItem
-            val updatedContact = existingContact.copy(messages = updatedMessages)
-            
-            // Replace the contact in the list
-            val updatedContacts = currentContacts.toMutableList()
-            updatedContacts[existingContactIndex] = updatedContact
-            _contacts.postValue(updatedContacts)
-        } else {
+        
             // Create new contact
             val newContact = ContactItem(
                 id = contactId,
-                name = contactName + " CONTATCT",
-                packageName = packageName,
-                appName = appName,
-                appIcon = appIcon,
+                name = contactName,
                 messages = listOf(messageItem)
             )
             
             // Add to contacts list
             _contacts.postValue(currentContacts + newContact)
         }
+
+
+    private fun contactExists(contactName: String): Boolean {
+        val currentContacts = _contacts.value ?: emptyList()
+        val contactId = contactName.hashCode().toString()
+        return currentContacts.any { it.id == contactId }
     }
 
-    private fun removeNotification(sbn: StatusBarNotification) {
-        val currentList = _notifications.value ?: return
-        val updatedList = currentList.filterNot { it.id == sbn.key }
-        _notifications.postValue(updatedList)
-    }
+
 
     override fun onBind(intent: Intent): IBinder? {
         return super.onBind(intent)
+    }
+
+
+
+    private fun addMessageToContact(contactName: String, messageItem: MessageItem) {
+        val currentContacts = _contacts.value ?: emptyList()
+        val contactId = contactName.hashCode().toString()
+        val contactIndex = currentContacts.indexOfFirst { it.id == contactId }
+        if (contactIndex != -1) {
+            val contact = currentContacts[contactIndex]
+            val updatedMessages = contact.messages + messageItem
+            val updatedContact = contact.copy(messages = updatedMessages)
+            val updatedContacts = currentContacts.toMutableList()
+            updatedContacts[contactIndex] = updatedContact
+            _contacts.postValue(updatedContacts)
+        }
     }
 }
